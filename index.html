@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>WasmOS</title>
+    <style>
+        body { background: #111; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        canvas { border: 4px solid #fff; box-shadow: 0 0 30px rgba(0,0,0,0.9); background: #000; cursor: none; }
+    </style>
+</head>
+<body>
+
+    <canvas id="os-screen" width="1280" height="720"></canvas>
+
+    <script type="module">
+        import init, { init_kernel, get_vram_ptr, on_mouse_down, on_mouse_move, on_mouse_up, on_os_keypress } from './pkg/wasm_os.js';
+
+        async function boot() {
+            const wasm = await init();
+            
+            // ここで確実に上のCanvasが取得できるようになります
+            const canvas = document.getElementById('os-screen');
+            const ctx = canvas.getContext('2d');
+            
+            init_kernel();
+        
+            const vramPtr = get_vram_ptr();
+            // 👑 JS側の読み込みサイズも1280x720用に更新
+            const vramSize = 1280 * 720 * 4; 
+
+            function refreshScreen() {
+                const vramBuffer = new Uint8ClampedArray(wasm.memory.buffer, vramPtr, vramSize);
+                // 👑 ImageDataのサイズを1280x720にする
+                const imageData = new ImageData(vramBuffer, 1280, 720);
+                ctx.putImageData(imageData, 0, 0);
+                requestAnimationFrame(refreshScreen);
+            }
+            refreshScreen();
+
+            canvas.addEventListener('mousedown', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                on_mouse_down(e.clientX - rect.left, e.clientY - rect.top);
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                on_mouse_move(e.clientX - rect.left, e.clientY - rect.top);
+            });
+
+            window.addEventListener('mouseup', () => {
+                on_mouse_up();
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if (e.key === "Backspace" || e.key === " ") {
+                    e.preventDefault();
+                }
+                on_os_keypress(e.key);
+            });
+        }
+        boot();
+    </script>
+</body>
+</html>

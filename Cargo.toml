@@ -1,0 +1,22 @@
+[package]
+name = "wasm_os"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+wasm-bindgen = "0.2"
+# 👑 ブラウザの機能をRustから叩くための設定を追加
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  "Window",
+  "Document",
+  "HtmlCanvasElement",
+  "CanvasRenderingContext2d",
+  "CssStyleDeclaration",
+  "MouseEvent",
+  "KeyboardEvent",
+  "console"
+]
+[lib]
+crate-type = ["cdylib", "rlib"]
