@@ -2,15 +2,15 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>WasmOS</title>
+    <title>WasmOS v2.0</title>
     <style>
         body { background: #111; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        canvas { border: 4px solid #fff; box-shadow: 0 0 30px rgba(0,0,0,0.9); background: #000; cursor: none; }
+        canvas { border: 4px solid #fff; box-shadow: 0 0 30px rgba(0,0,0,0.9); background: #000; cursor: none; max-width: 98vw; max-height: 96vh; aspect-ratio: 16 / 9; }
     </style>
 </head>
 <body>
 
-    <canvas id="os-screen" width="1280" height="720"></canvas>
+    <canvas id="os-screen" width="1920" height="1080"></canvas>
 
     <script type="module">
         import init, { init_kernel, get_vram_ptr, on_mouse_down, on_mouse_move, on_mouse_up, on_os_keypress } from './pkg/wasm_os.js';
@@ -26,25 +26,34 @@
         
             const vramPtr = get_vram_ptr();
             // 👑 JS側の読み込みサイズも1280x720用に更新
-            const vramSize = 1280 * 720 * 4; 
+            const vramSize = 1920 * 1080 * 4; 
 
             function refreshScreen() {
                 const vramBuffer = new Uint8ClampedArray(wasm.memory.buffer, vramPtr, vramSize);
                 // 👑 ImageDataのサイズを1280x720にする
-                const imageData = new ImageData(vramBuffer, 1280, 720);
+                const imageData = new ImageData(vramBuffer, 1920, 1080);
                 ctx.putImageData(imageData, 0, 0);
                 requestAnimationFrame(refreshScreen);
             }
             refreshScreen();
 
-            canvas.addEventListener('mousedown', (e) => {
+            // CanvasがCSSで縮小表示されても座標がずれないよう、表示サイズとの比率で補正する
+            function toOSCoords(e) {
                 const rect = canvas.getBoundingClientRect();
-                on_mouse_down(e.clientX - rect.left, e.clientY - rect.top);
+                return [
+                    (e.clientX - rect.left) * (canvas.width / rect.width),
+                    (e.clientY - rect.top) * (canvas.height / rect.height),
+                ];
+            }
+
+            canvas.addEventListener('mousedown', (e) => {
+                const [x, y] = toOSCoords(e);
+                on_mouse_down(x, y);
             });
 
             window.addEventListener('mousemove', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                on_mouse_move(e.clientX - rect.left, e.clientY - rect.top);
+                const [x, y] = toOSCoords(e);
+                on_mouse_move(x, y);
             });
 
             window.addEventListener('mouseup', () => {
