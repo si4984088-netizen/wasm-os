@@ -21,11 +21,13 @@ export interface InitOutput {
     readonly on_mouse_down: (a: number, b: number) => void;
     readonly on_mouse_move: (a: number, b: number) => void;
     readonly on_os_keypress: (a: number, b: number) => void;
-    readonly on_mouse_up: () => void;
     readonly init_kernel: () => void;
-    readonly __wbindgen_externrefs: WebAssembly.Table;
+    readonly on_mouse_up: () => void;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
+    readonly __wbindgen_exn_store: (a: number) => void;
+    readonly __externref_table_alloc: () => number;
+    readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_start: () => void;
 }
 
